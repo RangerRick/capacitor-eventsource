@@ -1,7 +1,7 @@
 package com.raccoonfink.plugins.eventsource;
 
 import android.util.Log;
-
+import androidx.annotation.WorkerThread;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
@@ -9,15 +9,12 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.here.oksse.OkSse;
 import com.here.oksse.ServerSentEvent;
-
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import org.json.JSONObject;
-
-import androidx.annotation.WorkerThread;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.json.JSONObject;
 
 enum ReadyState {
     CONNECTING,

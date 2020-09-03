@@ -1,7 +1,7 @@
 {
   "name": "capacitor-eventsource",
   "version": "0.0.1",
-  "description": "EventSource consumer",
+  "description": "EventSource (SSE) API for Capacitor",
   "main": "dist/plugin.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",
