@@ -1,7 +1,6 @@
 package com.raccoonfink.plugins.eventsource;
 
 import android.util.Log;
-import androidx.annotation.WorkerThread;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
@@ -108,27 +107,23 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
         this.notifyListeners("message", ret, true);
     }
 
-    @WorkerThread
     @Override
     public void onComment(final ServerSentEvent sse, final String comment) {
         Log.v(TAG, "onComment: " + comment);
     }
 
-    @WorkerThread
     @Override
     public Request onPreRetry(final ServerSentEvent sse, final Request originalRequest) {
         Log.v(TAG, "onPreRetry");
         return originalRequest;
     }
 
-    @WorkerThread
     @Override
     public boolean onRetryTime(final ServerSentEvent sse, final long milliseconds) {
         Log.v(TAG, "onRetryTime: " + milliseconds);
         return true; // True to use the new retry time received by SSE
     }
 
-    @WorkerThread
     @Override
     public boolean onRetryError(final ServerSentEvent sse, final Throwable throwable, final Response response) {
         Log.w(TAG, "onRetryError: " + throwable.getMessage());
@@ -140,7 +135,6 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
         return true; // True to retry, false otherwise
     }
 
-    @WorkerThread
     @Override
     public void onClosed(final ServerSentEvent sse) {
         Log.v(TAG, "onClosed");

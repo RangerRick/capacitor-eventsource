@@ -11,7 +11,6 @@ buildscript {
         maven { url 'https://jitpack.io' }
     }
     dependencies {
-        classpath 'androidx.annotation:annotation:1.1.0'
         classpath 'com.android.tools.build:gradle:3.6.1'
         classpath 'com.github.heremaps:oksse:0.9.0'
     }
@@ -48,7 +47,6 @@ repositories {
 
 
 dependencies {
-    implementation 'androidx.annotation:annotation:1.1.0'
     implementation 'com.github.heremaps:oksse:0.9.0'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':capacitor-android')
