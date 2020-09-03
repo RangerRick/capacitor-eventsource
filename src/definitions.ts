@@ -34,19 +34,19 @@ export interface EventSourcePlugin {
   close(): Promise<void>;
 
   addListener(
-    eventName: 'onOpen',
+    eventName: 'open',
     listenerFunc: (result: OpenResult) => void,
   ): PluginListenerHandle;
   addListener(
-    eventName: 'onMessage',
+    eventName: 'message',
     listenerFunc: (result: MessageResult) => void,
   ): PluginListenerHandle;
   addListener(
-    eventName: 'onError',
+    eventName: 'error',
     listenerFunc: (result: ErrorResult) => void,
   ): PluginListenerHandle;
   addListener(
-    eventName: 'onReadyStateChanged',
+    eventName: 'readyStateChanged',
     listenerFunc: (result: ReadyStateChangedResult) => void,
   ): PluginListenerHandle;
 }

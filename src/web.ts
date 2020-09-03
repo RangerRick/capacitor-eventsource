@@ -28,19 +28,19 @@ export class EventSourceWeb extends WebPlugin implements EventSourcePlugin {
     }
 
     this.eventSource = new window.EventSource(this.url);
-    this.notifyListeners('onReadyStateChanged', {
+    this.notifyListeners('readyStateChanged', {
       state: READY_STATE.CONNECTING,
     });
 
     this.eventSource.addEventListener('error', (ev: any) => {
-      this.notifyListeners('onError', { error: ev?.message });
+      this.notifyListeners('error', { error: ev?.message });
     });
     this.eventSource.addEventListener('message', (ev: MessageEvent) => {
-      this.notifyListeners('onMessage', { message: ev?.data });
+      this.notifyListeners('message', { message: ev?.data });
     });
     this.eventSource.addEventListener('open', (ev: any) => {
-      this.notifyListeners('onOpen', { message: ev?.message });
-      this.notifyListeners('onReadyStateChanged', { state: READY_STATE.OPEN });
+      this.notifyListeners('open', { message: ev?.message });
+      this.notifyListeners('readyStateChanged', { state: READY_STATE.OPEN });
     });
   }
 
@@ -48,7 +48,7 @@ export class EventSourceWeb extends WebPlugin implements EventSourcePlugin {
     console.debug(`EventSourceWeb.close()`);
     if (this.eventSource) {
       this.eventSource.close();
-      this.notifyListeners('onReadyStateChanged', {
+      this.notifyListeners('readyStateChanged', {
         state: READY_STATE.CLOSED,
       });
     }

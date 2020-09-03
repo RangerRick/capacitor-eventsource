@@ -66,7 +66,7 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
 
         final JSObject ret = new JSObject();
         ret.put("state", ReadyState.CONNECTING);
-        this.notifyListeners("onReadyStateChanged", ret, true);
+        this.notifyListeners("readyStateChanged", ret, true);
 
         final Request request = new Request.Builder().url(this.url).build();
         final OkSse okSse = new OkSse();
@@ -95,11 +95,11 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
 
         final JSObject ret = new JSObject();
         ret.put("value", null);
-        this.notifyListeners("onOpen", ret, true);
+        this.notifyListeners("open", ret, true);
 
         final JSObject rsRet = new JSObject();
         rsRet.put("state", ReadyState.OPEN);
-        this.notifyListeners("onReadyStateChanged", rsRet, true);
+        this.notifyListeners("readyStateChanged", rsRet, true);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
 
         final JSObject ret = new JSObject();
         ret.put("message", message);
-        this.notifyListeners("onMessage", ret, true);
+        this.notifyListeners("message", ret, true);
     }
 
     @WorkerThread
@@ -138,7 +138,7 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
 
         final JSObject ret = new JSObject();
         ret.put("error", throwable.getMessage());
-        this.notifyListeners("onError", ret, true);
+        this.notifyListeners("error", ret, true);
 
         return true; // True to retry, false otherwise
     }
@@ -150,6 +150,6 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
 
         final JSObject ret = new JSObject();
         ret.put("state", ReadyState.CLOSED);
-        this.notifyListeners("onReadyStateChanged", ret, true);
+        this.notifyListeners("readyStateChanged", ret, true);
     }
 }

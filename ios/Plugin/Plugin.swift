@@ -60,28 +60,28 @@ public class EventSource: CAPPlugin {
 
         self.eventSource?.onOpen({ (event: LDEvent?) in
             if event != nil {
-                self.notifyListeners("onOpen", data: [
+                self.notifyListeners("open", data: [
                     "value": event?.data as Any
                 ], retainUntilConsumed: true)
             }
         })
         self.eventSource?.onMessage({ (event: LDEvent?) in
             if event != nil {
-                self.notifyListeners("onMessage", data: [
+                self.notifyListeners("message", data: [
                     "message": event?.data as Any
                 ], retainUntilConsumed: true)
             }
         })
         self.eventSource?.onError({ (event: LDEvent?) in
             if event != nil {
-                self.notifyListeners("onError", data: [
+                self.notifyListeners("error", data: [
                     "error": event?.data as Any
                 ], retainUntilConsumed: true)
             }
         })
         self.eventSource?.onReadyStateChanged({ (event: LDEvent?) in
             if event != nil {
-                self.notifyListeners("onReadyStateChanged", data: [
+                self.notifyListeners("readyStateChanged", data: [
                     "state": event?.readyState as Any
                 ], retainUntilConsumed: true)
             }
