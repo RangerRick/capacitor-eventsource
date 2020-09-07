@@ -1,3 +1,8 @@
+0.0.7
+=====
+
+* Add typescript definition for `removeAllListeners()`
+
 0.0.6
 =====
 
