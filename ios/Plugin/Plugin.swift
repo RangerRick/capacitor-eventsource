@@ -96,9 +96,10 @@ public class EventSource: CAPPlugin {
         os_log("closing event source connection to %s", log: logger, type: .info, self.url ?? "unknown")
         #endif
 
-        if self.eventSource != nil && self.opened {
+        if self.eventSource != nil {
             self.eventSource?.close()
             self.opened = false
+            self.eventSource = nil
         }
         call.resolve()
     }

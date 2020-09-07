@@ -51,6 +51,7 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
             Log.v(TAG, "configure() called, but there is an existing event source; making sure it's closed");
             this.sse.close();
             this.opened = false;
+            this.see = null;
         }
 
         call.resolve();
@@ -77,9 +78,10 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
     public void close(final PluginCall call) {
         Log.i(TAG, "closing connection");
 
-        if (this.sse != null && this.opened) {
+        if (this.sse != null) {
             this.sse.close();
             this.opened = false;
+            this.sse = null;
         }
 
         call.resolve();
