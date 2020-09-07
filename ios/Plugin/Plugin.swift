@@ -1,6 +1,6 @@
 import Foundation
 import Capacitor
-import IKEventSource
+import DarklyEventSource
 
 #if !os(Linux)
 import os.log
@@ -16,7 +16,7 @@ public class EventSource: CAPPlugin {
     private let logger: OSLog = OSLog(subsystem: "com.raccoonfink.capacitor.eventsource", category: "EventSource")
     #endif
 
-    var eventSource: IKEventSource.EventSource?
+    var eventSource: LDEventSource?
     var url: String?
     var opened = false
 
@@ -39,10 +39,10 @@ public class EventSource: CAPPlugin {
             #if !os(Linux)
             os_log("configure() called: closing existing event source", log: logger, type: .error)
             #endif
-            self.eventSource?.disconnect()
+            self.eventSource?.close()
             self.opened = false
         }
-        self.eventSource = IKEventSource.EventSource.init(url: serverURL);
+        self.eventSource = LDEventSource.init(url: serverURL, httpHeaders: [String: String]())
 
         self.opened = true
         call.resolve()
@@ -58,34 +58,36 @@ public class EventSource: CAPPlugin {
         os_log("opening event source to %s", log: logger, type: .info, self.url ?? "unknown")
         #endif
 
-        self.notifyListeners("readyStateChanged", data: [
-            "state": EventSourceState.connecting as Any
-        ], retainUntilConsumed: true)
+        self.eventSource?.onOpen({ (event: LDEvent?) in
+            if event != nil {
+                self.notifyListeners("open", data: [
+                    "value": event?.data as Any
+                ], retainUntilConsumed: true)
+            }
+        })
+        self.eventSource?.onMessage({ (event: LDEvent?) in
+            if event != nil {
+                self.notifyListeners("message", data: [
+                    "message": event?.data as Any
+                ], retainUntilConsumed: true)
+            }
+        })
+        self.eventSource?.onError({ (event: LDEvent?) in
+            if event != nil {
+                self.notifyListeners("error", data: [
+                    "error": event?.data as Any
+                ], retainUntilConsumed: true)
+            }
+        })
+        self.eventSource?.onReadyStateChanged({ (event: LDEvent?) in
+            if event != nil {
+                self.notifyListeners("readyStateChanged", data: [
+                    "state": event?.readyState as Any
+                ], retainUntilConsumed: true)
+            }
+        })
 
-        self.eventSource?.onOpen({ [weak self] in
-            self?.notifyListeners("open", data: [
-                "value": true as Any
-            ], retainUntilConsumed: true)
-            self?.notifyListeners("readyStateChanged", data: [
-                "state": EventSourceState.open as Any
-            ], retainUntilConsumed: true)
-        })
-        self.eventSource?.onMessage({ [weak self] id, event, data in
-            self?.notifyListeners("message", data: [
-                "event": event as Any,
-                "message": data as Any
-            ], retainUntilConsumed: true)
-        })
-        self.eventSource?.onComplete({ [weak self] statusCode, reconnect, error in
-            self?.notifyListeners("error", data: [
-                "error": error?.localizedDescription as Any
-            ], retainUntilConsumed: true)
-            self?.notifyListeners("readyStateChanged", data: [
-                "state": EventSourceState.closed as Any
-            ], retainUntilConsumed: true)
-        })
-
-        self.eventSource?.connect()
+        self.eventSource?.open()
         call.resolve()
     }
 
@@ -95,7 +97,7 @@ public class EventSource: CAPPlugin {
         #endif
 
         if self.eventSource != nil && self.opened {
-            self.eventSource?.disconnect()
+            self.eventSource?.close()
             self.opened = false
         }
         call.resolve()
