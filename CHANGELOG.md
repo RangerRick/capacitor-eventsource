@@ -1,3 +1,8 @@
+0.0.6
+=====
+
+* Always close, just in case.
+
 0.0.5
 =====
 
