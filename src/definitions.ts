@@ -33,6 +33,7 @@ export interface EventSourcePlugin {
   open(): Promise<void>;
   close(): Promise<void>;
 
+  removeAllListeners(): void;
   addListener(
     eventName: 'open',
     listenerFunc: (result: OpenResult) => void,
