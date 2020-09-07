@@ -1,3 +1,8 @@
+0.0.9
+=====
+
+* Fix typo in Android build.
+
 0.0.7
 =====
 
