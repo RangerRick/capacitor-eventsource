@@ -1,3 +1,8 @@
+0.1.0
+=====
+
+* More iOS switching! Now using LDSwiftEventSource ;)
+
 0.0.9
 =====
 

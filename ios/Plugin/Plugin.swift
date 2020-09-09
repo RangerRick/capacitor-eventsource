@@ -1,6 +1,6 @@
 import Foundation
 import Capacitor
-import DarklyEventSource
+import LDSwiftEventSource
 
 #if !os(Linux)
 import os.log
@@ -11,12 +11,12 @@ import os.log
  * here: https://capacitorjs.com/docs/plugins/ios
  */
 @objc(EventSource)
-public class EventSource: CAPPlugin {
+public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
     #if !os(Linux)
     private let logger: OSLog = OSLog(subsystem: "com.raccoonfink.capacitor.eventsource", category: "EventSource")
     #endif
 
-    var eventSource: LDEventSource?
+    var eventSource: LDSwiftEventSource.EventSource?
     var url: String?
     var opened = false
 
@@ -39,10 +39,16 @@ public class EventSource: CAPPlugin {
             #if !os(Linux)
             os_log("configure() called: closing existing event source", log: logger, type: .error)
             #endif
-            self.eventSource?.close()
+            self.eventSource?.stop()
             self.opened = false
         }
-        self.eventSource = LDEventSource.init(url: serverURL, httpHeaders: [String: String]())
+        var config = LDSwiftEventSource.EventSource.Config(handler: self, url: serverURL)
+        config.reconnectTime = 1.0
+        config.maxReconnectTime = 60.0
+        config.backoffResetThreshold = 10.0
+        config.idleTimeout = 120.0
+
+        self.eventSource = LDSwiftEventSource.EventSource.init(config: config)
 
         self.opened = true
         call.resolve()
@@ -58,36 +64,11 @@ public class EventSource: CAPPlugin {
         os_log("opening event source to %s", log: logger, type: .info, self.url ?? "unknown")
         #endif
 
-        self.eventSource?.onOpen({ (event: LDEvent?) in
-            if event != nil {
-                self.notifyListeners("open", data: [
-                    "value": event?.data as Any
-                ], retainUntilConsumed: true)
-            }
-        })
-        self.eventSource?.onMessage({ (event: LDEvent?) in
-            if event != nil {
-                self.notifyListeners("message", data: [
-                    "message": event?.data as Any
-                ], retainUntilConsumed: true)
-            }
-        })
-        self.eventSource?.onError({ (event: LDEvent?) in
-            if event != nil {
-                self.notifyListeners("error", data: [
-                    "error": event?.data as Any
-                ], retainUntilConsumed: true)
-            }
-        })
-        self.eventSource?.onReadyStateChanged({ (event: LDEvent?) in
-            if event != nil {
-                self.notifyListeners("readyStateChanged", data: [
-                    "state": event?.readyState as Any
-                ], retainUntilConsumed: true)
-            }
-        })
+        self.notifyListeners("readyStateChanged", data: [
+            "state": ReadyState.connecting as Any
+        ], retainUntilConsumed: true)
 
-        self.eventSource?.open()
+        self.eventSource?.start()
         call.resolve()
     }
 
@@ -97,10 +78,43 @@ public class EventSource: CAPPlugin {
         #endif
 
         if self.eventSource != nil {
-            self.eventSource?.close()
+            self.eventSource?.stop()
             self.opened = false
             self.eventSource = nil
         }
         call.resolve()
     }
+
+    public func onOpened() {
+        self.notifyListeners("readyStateChanged", data: [
+            "state": ReadyState.open as Any
+        ], retainUntilConsumed: true)
+        self.notifyListeners("open", data: [String:Any](), retainUntilConsumed: true)
+    }
+
+    public func onClosed() {
+        self.notifyListeners("readyStateChanged", data: [
+            "state": ReadyState.closed as Any
+        ], retainUntilConsumed: true)
+    }
+
+    public func onMessage(eventType: String, messageEvent: MessageEvent) {
+        self.notifyListeners("message", data: [
+            "type": eventType,
+            "message": messageEvent.data as Any
+        ], retainUntilConsumed: true)
+    }
+
+    public func onComment(comment: String) {
+        #if !os(Linux)
+        os_log("comment received: %s", log: logger, type: .info, comment)
+        #endif
+    }
+
+    public func onError(error: Error) {
+        self.notifyListeners("error", data: [
+            "error": error.localizedDescription as Any
+        ], retainUntilConsumed: true)
+    }
+
 }
