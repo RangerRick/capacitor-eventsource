@@ -13,16 +13,7 @@ On iOS or for pure-web use, no further steps are needed.
 
 ### Android Installation
 
-On Android, a few steps are involved:
-
-First, set up your Gradle build to find dependencies from Jitpack.
-Edit your `android/build.gradle` file and add the following to the `repositories:` section inside `allProjects` (under `jcenter()`):
-
-```gradle
-maven { url 'https://jitpack.io' }
-```
-
-Next, update your main activity to pull in the `EventSource` plugin:
+On Android, update your main activity to pull in the `EventSource` plugin:
 
 ```java
 import com.raccoonfink.plugins.eventsource.EventSource;

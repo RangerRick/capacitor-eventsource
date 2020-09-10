@@ -1,3 +1,8 @@
+0.1.2
+=====
+
+* Update Android implementation to use okhttp-sse
+
 0.1.1
 =====
 

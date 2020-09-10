@@ -6,13 +6,15 @@ import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
-import com.here.oksse.OkSse;
-import com.here.oksse.ServerSentEvent;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.sse.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
 
 enum ReadyState {
@@ -22,10 +24,10 @@ enum ReadyState {
 }
 
 @NativePlugin
-public class EventSource extends Plugin implements ServerSentEvent.Listener {
+public class EventSource extends Plugin {
     private static final String TAG = "EventSource";
 
-    private ServerSentEvent sse;
+    private okhttp3.sse.EventSource sse;
     private URL url;
     private boolean opened = false;
 
@@ -49,7 +51,7 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
 
         if (this.sse != null) {
             Log.v(TAG, "configure() called, but there is an existing event source; making sure it's closed");
-            this.sse.close();
+            this.sse.cancel();
             this.opened = false;
             this.sse = null;
         }
@@ -66,8 +68,52 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
         this.notifyListeners("readyStateChanged", ret, true);
 
         final Request request = new Request.Builder().url(this.url).build();
-        final OkSse okSse = new OkSse();
-        this.sse = okSse.newServerSentEvent(request, this);
+        final OkHttpClient client = new OkHttpClient.Builder().build();
+        okhttp3.sse.EventSource.Factory factory = EventSources.createFactory(client);
+
+        final EventSource me = this;
+
+        this.sse =
+            factory.newEventSource(
+                request,
+                new EventSourceListener() {
+
+                    @Override
+                    public void onOpen(@NotNull okhttp3.sse.EventSource eventSource, @NotNull Response response) {
+                        me.onOpen(eventSource, response);
+                    }
+
+                    @Override
+                    public void onEvent(
+                        @NotNull okhttp3.sse.EventSource eventSource,
+                        @Nullable String id,
+                        @Nullable String type,
+                        @NotNull String data
+                    ) {
+                        if (type == "message") {
+                            me.onMessage(eventSource, id, type, data);
+                        } else if (type == "comment") {
+                            me.onComment(eventSource, data);
+                        } else {
+                            Log.w(TAG, "unhandled event id=" + id + ", type=" + type + ", data=" + data);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                        @NotNull okhttp3.sse.EventSource eventSource,
+                        @Nullable Throwable t,
+                        @Nullable Response response
+                    ) {
+                        me.onError(eventSource, t, response);
+                    }
+
+                    @Override
+                    public void onClosed(@NotNull okhttp3.sse.EventSource eventSource) {
+                        me.onClosed(eventSource);
+                    }
+                }
+            );
 
         this.opened = true;
 
@@ -79,7 +125,7 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
         Log.i(TAG, "closing connection");
 
         if (this.sse != null) {
-            this.sse.close();
+            this.sse.cancel();
             this.opened = false;
             this.sse = null;
         }
@@ -87,8 +133,7 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
         call.resolve();
     }
 
-    @Override
-    public void onOpen(final ServerSentEvent sse, final Response response) {
+    public void onOpen(final okhttp3.sse.EventSource sse, final Response response) {
         Log.v(TAG, "onOpen");
 
         final JSObject ret = new JSObject();
@@ -100,8 +145,7 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
         this.notifyListeners("readyStateChanged", rsRet, true);
     }
 
-    @Override
-    public void onMessage(final ServerSentEvent sse, final String id, final String event, final String message) {
+    public void onMessage(final okhttp3.sse.EventSource sse, final String id, final String event, final String message) {
         Log.v(TAG, "onMessage: " + message);
 
         final JSObject ret = new JSObject();
@@ -109,26 +153,12 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
         this.notifyListeners("message", ret, true);
     }
 
-    @Override
-    public void onComment(final ServerSentEvent sse, final String comment) {
+    public void onComment(final okhttp3.sse.EventSource sse, final String comment) {
         Log.v(TAG, "onComment: " + comment);
     }
 
-    @Override
-    public Request onPreRetry(final ServerSentEvent sse, final Request originalRequest) {
-        Log.v(TAG, "onPreRetry");
-        return originalRequest;
-    }
-
-    @Override
-    public boolean onRetryTime(final ServerSentEvent sse, final long milliseconds) {
-        Log.v(TAG, "onRetryTime: " + milliseconds);
-        return true; // True to use the new retry time received by SSE
-    }
-
-    @Override
-    public boolean onRetryError(final ServerSentEvent sse, final Throwable throwable, final Response response) {
-        Log.w(TAG, "onRetryError: " + throwable.getMessage());
+    public boolean onError(final okhttp3.sse.EventSource sse, final Throwable throwable, final Response response) {
+        Log.w(TAG, "onError: " + throwable.getMessage());
 
         final JSObject ret = new JSObject();
         ret.put("error", throwable.getMessage());
@@ -137,8 +167,7 @@ public class EventSource extends Plugin implements ServerSentEvent.Listener {
         return true; // True to retry, false otherwise
     }
 
-    @Override
-    public void onClosed(final ServerSentEvent sse) {
+    public void onClosed(final okhttp3.sse.EventSource sse) {
         Log.v(TAG, "onClosed");
 
         final JSObject ret = new JSObject();
