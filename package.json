@@ -1,6 +1,6 @@
 {
   "name": "capacitor-eventsource",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "EventSource (SSE) API for Capacitor",
   "main": "dist/plugin.js",
   "module": "dist/esm/index.js",
@@ -8,21 +8,21 @@
   "author": "Benjamin Reed <github@raccoonfink.com>",
   "license": "MIT",
   "devDependencies": {
-    "@capacitor/android": "^2.4.0",
-    "@capacitor/core": "^2.4.0",
-    "@capacitor/ios": "^2.4.0",
+    "@capacitor/android": "^2.4.1",
+    "@capacitor/core": "^2.4.1",
+    "@capacitor/ios": "^2.4.1",
     "@ionic/prettier-config": "^1.0.0",
-    "@ionic/swiftlint-config": "^1.0.0",
-    "@rollup/plugin-node-resolve": "^8.1.0",
-    "prettier": "^2.0.5",
+    "@ionic/swiftlint-config": "^1.1.2",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "prettier": "^2.1.1",
     "prettier-plugin-java": "^0.8.2",
     "rimraf": "^3.0.0",
-    "rollup": "^2.21.0",
+    "rollup": "^2.26.11",
     "swiftlint": "^1.0.1",
     "typescript": "~3.8.3"
   },
   "peerDependencies": {
-    "@capacitor/core": "^2.4.0"
+    "@capacitor/core": "^2.4.1"
   },
   "files": [
     "dist/",
