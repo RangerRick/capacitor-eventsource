@@ -89,7 +89,7 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
         self.notifyListeners("readyStateChanged", data: [
             "state": ReadyState.open as Any
         ], retainUntilConsumed: true)
-        self.notifyListeners("open", data: [String:Any](), retainUntilConsumed: true)
+        self.notifyListeners("open", data: [String: Any](), retainUntilConsumed: true)
     }
 
     public func onClosed() {
