@@ -2,6 +2,8 @@
 =====
 
 * Update Android implementation to use okhttp-sse
+* Skip updates that come through after shutting down, to avoid
+  a potential crash in notifying listeners
 
 0.1.1
 =====
