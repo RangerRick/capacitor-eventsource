@@ -125,8 +125,8 @@ public class EventSource extends Plugin {
         Log.i(TAG, "closing connection");
 
         if (this.sse != null) {
-            this.sse.cancel();
             this.opened = false;
+            this.sse.cancel();
             this.sse = null;
         }
 
@@ -134,6 +134,11 @@ public class EventSource extends Plugin {
     }
 
     public void onOpen(final okhttp3.sse.EventSource sse, final Response response) {
+        if (!this.opened) {
+            Log.v(TAG, "onOpen skipped (this.opened=false)");
+            return;
+        }
+
         Log.v(TAG, "onOpen");
 
         final JSObject ret = new JSObject();
@@ -146,6 +151,11 @@ public class EventSource extends Plugin {
     }
 
     public void onMessage(final okhttp3.sse.EventSource sse, final String id, final String event, final String message) {
+        if (!this.opened) {
+            Log.v(TAG, "onMessage skipped (this.opened=false)");
+            return;
+        }
+
         Log.v(TAG, "onMessage: " + message);
 
         final JSObject ret = new JSObject();
@@ -158,6 +168,11 @@ public class EventSource extends Plugin {
     }
 
     public boolean onError(final okhttp3.sse.EventSource sse, final Throwable throwable, final Response response) {
+        if (!this.opened) {
+            Log.v(TAG, "onError skipped (this.opened=false)");
+            return true;
+        }
+
         Log.w(TAG, "onError: " + throwable.getMessage());
 
         final JSObject ret = new JSObject();
@@ -168,6 +183,11 @@ public class EventSource extends Plugin {
     }
 
     public void onClosed(final okhttp3.sse.EventSource sse) {
+        if (!this.opened) {
+            Log.v(TAG, "onClosed skipped (this.opened=false)");
+            return;
+        }
+
         Log.v(TAG, "onClosed");
 
         final JSObject ret = new JSObject();

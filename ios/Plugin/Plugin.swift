@@ -49,8 +49,6 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
         config.idleTimeout = 120.0
 
         self.eventSource = LDSwiftEventSource.EventSource.init(config: config)
-
-        self.opened = true
         call.resolve()
     }
 
@@ -68,6 +66,7 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
             "state": ReadyState.connecting as Any
         ], retainUntilConsumed: true)
 
+        self.opened = true
         self.eventSource?.start()
         call.resolve()
     }
@@ -78,14 +77,21 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
         #endif
 
         if self.eventSource != nil {
-            self.eventSource?.stop()
             self.opened = false
+            self.eventSource?.stop()
             self.eventSource = nil
         }
         call.resolve()
     }
 
     public func onOpened() {
+        if (!self.opened) {
+            #if !os(Linux)
+            os_log("onOpened skipped (self.opened=false)", log: logger, type: .debug)
+            #endif
+            return
+        }
+
         self.notifyListeners("readyStateChanged", data: [
             "state": ReadyState.open as Any
         ], retainUntilConsumed: true)
@@ -93,12 +99,26 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
     }
 
     public func onClosed() {
+        if (!self.opened) {
+            #if !os(Linux)
+            os_log("onClosed skipped (self.opened=false)", log: logger, type: .debug)
+            #endif
+            return
+        }
+
         self.notifyListeners("readyStateChanged", data: [
             "state": ReadyState.closed as Any
         ], retainUntilConsumed: true)
     }
 
     public func onMessage(eventType: String, messageEvent: MessageEvent) {
+        if (!self.opened) {
+            #if !os(Linux)
+            os_log("onMessage skipped (self.opened=false)", log: logger, type: .debug)
+            #endif
+            return
+        }
+
         self.notifyListeners("message", data: [
             "type": eventType,
             "message": messageEvent.data as Any
@@ -107,14 +127,23 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
 
     public func onComment(comment: String) {
         #if !os(Linux)
-        os_log("comment received: %s", log: logger, type: .info, comment)
+        os_log("comment ignored: %s", log: logger, type: .debug, comment)
         #endif
     }
 
     public func onError(error: Error) {
-        self.notifyListeners("error", data: [
-            "error": error.localizedDescription as Any
-        ], retainUntilConsumed: true)
+        if (!self.opened) {
+            #if !os(Linux)
+            os_log("onError skipped (self.opened=false, error=%s)", log: logger, type: .debug, error.localizedDescription)
+            #endif
+            return
+        }
+
+        if (self.opened) {
+            self.notifyListeners("error", data: [
+                "error": error.localizedDescription as Any
+            ], retainUntilConsumed: true)
+        }
     }
 
 }
