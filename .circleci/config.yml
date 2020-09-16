@@ -51,7 +51,7 @@ jobs:
         - cached-checkout
         - cached-npm-install
         - run:
-            name: Run Link Check
+            name: Run Lint Check
             command: npm --prefer-offline --no-progress run lint
         - run:
             name: Run Build
