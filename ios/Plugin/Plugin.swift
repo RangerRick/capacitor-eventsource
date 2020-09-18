@@ -43,10 +43,11 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
             self.opened = false
         }
         var config = LDSwiftEventSource.EventSource.Config(handler: self, url: serverURL)
-        config.reconnectTime = 1.0
-        config.maxReconnectTime = 60.0
-        config.backoffResetThreshold = 10.0
-        config.idleTimeout = 120.0
+
+        config.reconnectTime         = (call.getDouble("reconnectTime")         ?? 1000.0)  / 1000.0
+        config.maxReconnectTime      = (call.getDouble("maxReconnectTime")      ?? 60000.0) / 1000.0
+        config.backoffResetThreshold = (call.getDouble("backoffResetThreshold") ?? 5000.0)  / 1000.0
+        config.idleTimeout           = (call.getDouble("idleTimeout")           ?? 30000.0) / 1000.0
 
         self.eventSource = LDSwiftEventSource.EventSource.init(config: config)
         call.resolve()
@@ -85,7 +86,7 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
     }
 
     public func onOpened() {
-        if (!self.opened) {
+        if !self.opened {
             #if !os(Linux)
             os_log("onOpened skipped (self.opened=false)", log: logger, type: .debug)
             #endif
@@ -99,7 +100,7 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
     }
 
     public func onClosed() {
-        if (!self.opened) {
+        if !self.opened {
             #if !os(Linux)
             os_log("onClosed skipped (self.opened=false)", log: logger, type: .debug)
             #endif
@@ -112,7 +113,7 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
     }
 
     public func onMessage(eventType: String, messageEvent: MessageEvent) {
-        if (!self.opened) {
+        if !self.opened {
             #if !os(Linux)
             os_log("onMessage skipped (self.opened=false)", log: logger, type: .debug)
             #endif
@@ -132,18 +133,16 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
     }
 
     public func onError(error: Error) {
-        if (!self.opened) {
+        if !self.opened {
             #if !os(Linux)
             os_log("onError skipped (self.opened=false, error=%s)", log: logger, type: .debug, error.localizedDescription)
             #endif
             return
         }
 
-        if (self.opened) {
-            self.notifyListeners("error", data: [
-                "error": error.localizedDescription as Any
-            ], retainUntilConsumed: true)
-        }
+        self.notifyListeners("error", data: [
+            "error": error.localizedDescription as Any
+        ], retainUntilConsumed: true)
     }
 
 }

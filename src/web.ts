@@ -1,6 +1,14 @@
 import { WebPlugin } from '@capacitor/core';
 import { EventSourcePlugin, READY_STATE } from './definitions';
 
+export interface EventSourceOptions {
+  url: string;
+  reconnectTime?: number;
+  maxReconnectTime?: number;
+  backoffResetThreshold?: number;
+  idleTimeout?: number;
+}
+
 export class EventSourceWeb extends WebPlugin implements EventSourcePlugin {
   private url?: string;
   private eventSource?: EventSource;

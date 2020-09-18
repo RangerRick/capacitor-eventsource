@@ -36,7 +36,12 @@ public class MainActivity extends BridgeActivity {
 ## Usage
 
 ```javascript
-EventSource.configure({ url: 'https://my-sse-url/' });
+EventSource.configure({
+  url: 'https://my-sse-url/',
+  reconnectTime: 1000,
+  maxReconnectTime: 60000,
+  idleTimeout: 30000,
+});
 EventSource.addListener('open', (openResult) => {
   console.debug('Connection opened.');
 });
@@ -50,3 +55,12 @@ EventSource.addListener('readyStateChanged', (readyStateChangedResult) => {
   console.debug('Ready state changed: ' + readyStateChangedResult.state);
 });
 ```
+
+## Parameters
+
+*note*: all times are in milliseconds
+
+* url: **required** the URL to connect to
+* reconnectTime: time to reconnect after the first failure
+* maxReconnectTime: maximum amount of time to wait until attempting a reconnect
+* idleTimeout: maximum amount of time between receiving any data before considering the connection to have timed out
