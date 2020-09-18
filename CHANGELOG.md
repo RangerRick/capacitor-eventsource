@@ -1,3 +1,9 @@
+0.1.3
+=====
+
+* Update Android implementation to use launchdarkly (haha I know)
+* Pass parameters for configuring retries/timeout/etc
+
 0.1.2
 =====
 
