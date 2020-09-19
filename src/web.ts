@@ -1,13 +1,5 @@
 import { WebPlugin } from '@capacitor/core';
-import { EventSourcePlugin, READY_STATE } from './definitions';
-
-export interface EventSourceOptions {
-  url: string;
-  reconnectTime?: number;
-  maxReconnectTime?: number;
-  backoffResetThreshold?: number;
-  idleTimeout?: number;
-}
+import { EventSourceOptions, EventSourcePlugin, READY_STATE } from './definitions';
 
 export class EventSourceWeb extends WebPlugin implements EventSourcePlugin {
   private url?: string;
@@ -20,7 +12,7 @@ export class EventSourceWeb extends WebPlugin implements EventSourcePlugin {
     });
   }
 
-  async configure(options: { url: string }): Promise<void> {
+  async configure(options: EventSourceOptions): Promise<void> {
     console.debug(`EventSourceWeb.configure(${options.url})`);
     if (options.url) {
       this.url = options.url;

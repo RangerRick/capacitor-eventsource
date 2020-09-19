@@ -6,6 +6,14 @@ declare module '@capacitor/core' {
   }
 }
 
+export interface EventSourceOptions {
+  url: string;
+  reconnectTime?: number;
+  maxReconnectTime?: number;
+  backoffResetThreshold?: number;
+  idleTimeout?: number;
+}
+
 export interface OpenResult {
   value?: string;
 }
@@ -29,7 +37,7 @@ export interface ReadyStateChangedResult {
 }
 
 export interface EventSourcePlugin {
-  configure(options: { url: string }): Promise<void>;
+  configure(options: EventSourceOptions): Promise<void>;
   open(): Promise<void>;
   close(): Promise<void>;
 
