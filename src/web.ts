@@ -1,5 +1,9 @@
 import { WebPlugin } from '@capacitor/core';
-import { EventSourceOptions, EventSourcePlugin, READY_STATE } from './definitions';
+import {
+  EventSourceOptions,
+  EventSourcePlugin,
+  READY_STATE,
+} from './definitions';
 
 export class EventSourceWeb extends WebPlugin implements EventSourcePlugin {
   private url?: string;
