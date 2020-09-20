@@ -44,8 +44,8 @@ repositories {
 
 
 dependencies {
-    // implementation "com.squareup.okhttp3:okhttp:4.8.1"
-    implementation "com.launchdarkly:okhttp-eventsource:1.11.1"
+    implementation "com.squareup.okhttp3:okhttp:4.8.1"
+    implementation "com.squareup.okhttp3:okhttp-sse:4.8.1"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"

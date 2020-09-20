@@ -1,18 +1,24 @@
 package com.raccoonfink.plugins.eventsource;
 
 import android.util.Log;
+
 import com.getcapacitor.JSObject;
 import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
-import com.launchdarkly.eventsource.*;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.sse.EventSourceListener;
+import okhttp3.sse.EventSources;
 
 enum ReadyState {
     CONNECTING,
@@ -21,10 +27,10 @@ enum ReadyState {
 }
 
 @NativePlugin
-public class EventSource extends Plugin implements EventHandler {
+public class EventSource extends Plugin {
     private static final String TAG = "EventSource";
 
-    private com.launchdarkly.eventsource.EventSource sse;
+    private okhttp3.sse.EventSource sse;
     private URL url;
     private boolean opened = false;
 
@@ -49,27 +55,8 @@ public class EventSource extends Plugin implements EventHandler {
         if (this.sse != null) {
             Log.v(TAG, "configure() called, but there is an existing event source; making sure it's closed");
             this.opened = false;
-            this.sse.close();
+            this.sse.cancel();
             this.sse = null;
-        }
-
-        final int reconnectTime = call.getInt("reconnectTime", 1000);
-        final int maxReconnectTime = call.getInt("maxReconnectTime", 60000);
-        final int backoffResetThreshold = call.getInt("backoffResetThreshold", 5000);
-        final int idleTimeout = call.getInt("idleTimeout", 30000);
-
-        final Request request = new Request.Builder().url(this.url).build();
-        final OkHttpClient client = new OkHttpClient.Builder().readTimeout(idleTimeout, TimeUnit.MILLISECONDS).build();
-        try {
-            this.sse =
-                new com.launchdarkly.eventsource.EventSource.Builder(this, this.url.toURI())
-                    .reconnectTimeMs(reconnectTime)
-                    .maxReconnectTimeMs(maxReconnectTime)
-                    .backoffResetThresholdMs(backoffResetThreshold)
-                    .readTimeoutMs(idleTimeout)
-                    .build();
-        } catch (final URISyntaxException e) {
-            e.printStackTrace();
         }
 
         call.resolve();
@@ -83,7 +70,57 @@ public class EventSource extends Plugin implements EventHandler {
         ret.put("state", ReadyState.CONNECTING);
         this.notifyListeners("readyStateChanged", ret, true);
 
-        this.sse.start();
+        final int idleTimeout = call.getInt("idleTimeout", 30000);
+
+        final Request request = new Request.Builder().url(this.url).build();
+        final OkHttpClient client = new OkHttpClient.Builder().build();
+        okhttp3.sse.EventSource.Factory factory = EventSources.createFactory(client);
+
+        final EventSource me = this;
+
+        this.sse =
+            factory.newEventSource(
+                request,
+                new EventSourceListener() {
+
+                    @Override
+                    public void onOpen(@NotNull okhttp3.sse.EventSource eventSource, @NotNull Response response) {
+                        me.onOpen(eventSource, response);
+                    }
+
+                    @Override
+                    public void onEvent(
+                        @NotNull okhttp3.sse.EventSource eventSource,
+                        @Nullable String id,
+                        @Nullable String type,
+                        @NotNull String data
+                    ) {
+                        if (type == "message") {
+                            me.onMessage(eventSource, id, type, data);
+                        } else if (type == "comment") {
+                            me.onComment(eventSource, data);
+                        } else {
+                            Log.w(TAG, "unhandled event id=" + id + ", type=" + type + ", data=" + data);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                        @NotNull okhttp3.sse.EventSource eventSource,
+                        @Nullable Throwable t,
+                        @Nullable Response response
+                    ) {
+                        me.onError(eventSource, t, response);
+                    }
+
+                    @Override
+                    public void onClosed(@NotNull okhttp3.sse.EventSource eventSource) {
+                        me.onClosed(eventSource);
+                    }
+                }
+            );
+
+        this.opened = true;
 
         call.resolve();
     }
@@ -94,14 +131,14 @@ public class EventSource extends Plugin implements EventHandler {
 
         if (this.sse != null) {
             this.opened = false;
-            this.sse.close();
+            this.sse.cancel();
             this.sse = null;
         }
 
         call.resolve();
     }
 
-    public void onOpen() {
+    public void onOpen(final okhttp3.sse.EventSource sse, final Response response) {
         if (!this.opened) {
             Log.v(TAG, "onOpen skipped (this.opened=false)");
             return;
@@ -118,37 +155,39 @@ public class EventSource extends Plugin implements EventHandler {
         this.notifyListeners("readyStateChanged", rsRet, true);
     }
 
-    public void onMessage(final String event, final MessageEvent messageEvent) {
+    public void onMessage(final okhttp3.sse.EventSource sse, final String id, final String event, final String message) {
         if (!this.opened) {
             Log.v(TAG, "onMessage skipped (this.opened=false)");
             return;
         }
 
-        Log.v(TAG, "onMessage: " + messageEvent.getData());
+        Log.v(TAG, "onMessage: " + message);
 
         final JSObject ret = new JSObject();
-        ret.put("message", messageEvent.getData());
+        ret.put("message", message);
         this.notifyListeners("message", ret, true);
     }
 
-    public void onComment(final String comment) {
+    public void onComment(final okhttp3.sse.EventSource sse, final String comment) {
         Log.v(TAG, "onComment: " + comment);
     }
 
-    public void onError(final Throwable throwable) {
+    public boolean onError(final okhttp3.sse.EventSource sse, final Throwable throwable, final Response response) {
         if (!this.opened) {
             Log.v(TAG, "onError skipped (this.opened=false)");
-            return;
+            return true;
         }
 
-        Log.e(TAG, "onError: " + throwable.getMessage(), throwable);
+        Log.w(TAG, "onError: " + throwable.getMessage());
 
         final JSObject ret = new JSObject();
         ret.put("error", throwable.getMessage());
         this.notifyListeners("error", ret, true);
+
+        return true; // True to retry, false otherwise
     }
 
-    public void onClosed() {
+    public void onClosed(final okhttp3.sse.EventSource sse) {
         if (!this.opened) {
             Log.v(TAG, "onClosed skipped (this.opened=false)");
             return;
