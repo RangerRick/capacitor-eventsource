@@ -35,12 +35,12 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
             return
         }
         self.url = url
-        if self.eventSource != nil && opened {
+        if self.eventSource != nil && self.opened {
             #if !os(Linux)
             os_log("configure() called: closing existing event source", log: logger, type: .error)
             #endif
-            self.eventSource?.stop()
             self.opened = false
+            self.eventSource?.stop()
         }
         var config = LDSwiftEventSource.EventSource.Config(handler: self, url: serverURL)
 

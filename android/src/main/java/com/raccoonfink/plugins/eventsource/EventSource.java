@@ -10,13 +10,9 @@ import com.launchdarkly.eventsource.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.time.Duration;
-import java.time.temporal.TemporalUnit;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
-import org.json.JSONObject;
 
 enum ReadyState {
     CONNECTING,
@@ -52,8 +48,8 @@ public class EventSource extends Plugin implements EventHandler {
 
         if (this.sse != null) {
             Log.v(TAG, "configure() called, but there is an existing event source; making sure it's closed");
-            this.sse.close();
             this.opened = false;
+            this.sse.close();
             this.sse = null;
         }
 
@@ -72,7 +68,7 @@ public class EventSource extends Plugin implements EventHandler {
                     .backoffResetThresholdMs(backoffResetThreshold)
                     .readTimeoutMs(idleTimeout)
                     .build();
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             e.printStackTrace();
         }
 
