@@ -61,6 +61,6 @@ EventSource.addListener('readyStateChanged', (readyStateChangedResult) => {
 *note*: all times are in milliseconds
 
 * url: **required** the URL to connect to
-* reconnectTime: time to reconnect after the first failure
-* maxReconnectTime: maximum amount of time to wait until attempting a reconnect
-* idleTimeout: maximum amount of time between receiving any data before considering the connection to have timed out
+* reconnectTime: time to reconnect after the first failure (iOS-only)
+* maxReconnectTime: maximum amount of time to wait until attempting a reconnect (iOS-only)
+* idleTimeout: maximum amount of time between receiving any data before considering the connection to have timed out (iOS-only)

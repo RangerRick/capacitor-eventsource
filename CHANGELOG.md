@@ -1,10 +1,14 @@
 Changes
 =======
 
+0.1.6
+-----
+* Sigh, the launchdarkly one crashes.  :(
+
 0.1.5
 -----
 * More fixes for potential race conditions.
-* FIx a compilation/import thing on Android.
+* Fix a compilation/import thing on Android.
 
 0.1.4
 -----
