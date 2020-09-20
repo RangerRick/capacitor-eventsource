@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.1.7
+-----
+* Wait!  No!  It was something different!  It's aliiiiive!
+
 0.1.6
 -----
 * Sigh, the launchdarkly one crashes.  :(
