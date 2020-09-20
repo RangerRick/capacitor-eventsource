@@ -84,6 +84,7 @@ public class EventSource extends Plugin implements EventHandler {
         this.notifyListeners("readyStateChanged", ret, true);
 
         this.sse.start();
+        this.opened = true;
 
         call.resolve();
     }
