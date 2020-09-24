@@ -65,7 +65,7 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
 
         self.notifyListeners("readyStateChanged", data: [
             "state": ReadyState.connecting as Any
-        ], retainUntilConsumed: true)
+        ], retainUntilConsumed: false)
 
         self.opened = true
         self.eventSource?.start()
@@ -95,8 +95,8 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
 
         self.notifyListeners("readyStateChanged", data: [
             "state": ReadyState.open as Any
-        ], retainUntilConsumed: true)
-        self.notifyListeners("open", data: [String: Any](), retainUntilConsumed: true)
+        ], retainUntilConsumed: false)
+        self.notifyListeners("open", data: [String: Any](), retainUntilConsumed: false)
     }
 
     public func onClosed() {
@@ -109,7 +109,7 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
 
         self.notifyListeners("readyStateChanged", data: [
             "state": ReadyState.closed as Any
-        ], retainUntilConsumed: true)
+        ], retainUntilConsumed: false)
     }
 
     public func onMessage(eventType: String, messageEvent: MessageEvent) {
@@ -123,7 +123,7 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
         self.notifyListeners("message", data: [
             "type": eventType,
             "message": messageEvent.data as Any
-        ], retainUntilConsumed: true)
+        ], retainUntilConsumed: false)
     }
 
     public func onComment(comment: String) {
@@ -142,7 +142,7 @@ public class EventSource: CAPPlugin, LDSwiftEventSource.EventHandler {
 
         self.notifyListeners("error", data: [
             "error": error.localizedDescription as Any
-        ], retainUntilConsumed: true)
+        ], retainUntilConsumed: false)
     }
 
 }

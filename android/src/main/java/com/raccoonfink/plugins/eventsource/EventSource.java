@@ -81,7 +81,7 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("state", ReadyState.CONNECTING);
-        this.notifyListeners("readyStateChanged", ret, true);
+        this.notifyListeners("readyStateChanged", ret, false);
 
         this.sse.start();
         this.opened = true;
@@ -112,11 +112,11 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("value", null);
-        this.notifyListeners("open", ret, true);
+        this.notifyListeners("open", ret, false);
 
         final JSObject rsRet = new JSObject();
         rsRet.put("state", ReadyState.OPEN);
-        this.notifyListeners("readyStateChanged", rsRet, true);
+        this.notifyListeners("readyStateChanged", rsRet, false);
     }
 
     public void onMessage(final String event, final MessageEvent messageEvent) {
@@ -129,7 +129,7 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("message", messageEvent.getData());
-        this.notifyListeners("message", ret, true);
+        this.notifyListeners("message", ret, false);
     }
 
     public void onComment(final String comment) {
@@ -146,7 +146,7 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("error", throwable.getMessage());
-        this.notifyListeners("error", ret, true);
+        this.notifyListeners("error", ret, false);
     }
 
     public void onClosed() {
@@ -159,6 +159,6 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("state", ReadyState.CLOSED);
-        this.notifyListeners("readyStateChanged", ret, true);
+        this.notifyListeners("readyStateChanged", ret, false);
     }
 }
