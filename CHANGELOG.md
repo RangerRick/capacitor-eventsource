@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.1.9
+-----
+* Fix cleanup after closing in the pure-web version.
+
 0.1.8
 -----
 * Don't retain messages, just let them drop.
