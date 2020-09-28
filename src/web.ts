@@ -7,7 +7,8 @@ import {
 
 export class EventSourceWeb extends WebPlugin implements EventSourcePlugin {
   private url?: string;
-  private eventSource?: EventSource;
+  private eventSource?: EventSource | null;
+  private opened = false;
 
   constructor() {
     super({
@@ -28,30 +29,44 @@ export class EventSourceWeb extends WebPlugin implements EventSourcePlugin {
   async open(): Promise<void> {
     console.debug(`EventSourceWeb.open()`);
     if (!this.url) {
-      throw new Error('call configure first');
+      throw new Error('You must call configure first!');
     }
 
-    this.eventSource = new window.EventSource(this.url);
     this.notifyListeners('readyStateChanged', {
       state: READY_STATE.CONNECTING,
     });
 
-    this.eventSource.addEventListener('error', (ev: any) => {
-      this.notifyListeners('error', { error: ev?.message });
-    });
-    this.eventSource.addEventListener('message', (ev: MessageEvent) => {
+    this.eventSource = new window.EventSource(this.url);
+    this.eventSource.onopen = this.onOpen.bind(this);
+    this.eventSource.onmessage = this.onMessage.bind(this);
+    this.eventSource.onerror = this.onError.bind(this);
+  }
+
+  onError(ev: any) {
+    this.notifyListeners('error', { error: ev?.message });
+  }
+
+  onMessage(ev: MessageEvent) {
+    if (this.opened) {
       this.notifyListeners('message', { message: ev?.data });
-    });
-    this.eventSource.addEventListener('open', (ev: any) => {
-      this.notifyListeners('open', { message: ev?.message });
-      this.notifyListeners('readyStateChanged', { state: READY_STATE.OPEN });
-    });
+    }
+  }
+
+  onOpen(ev: any) {
+    this.opened = true;
+    this.notifyListeners('open', { message: ev?.message });
+    this.notifyListeners('readyStateChanged', { state: READY_STATE.OPEN });
   }
 
   async close(): Promise<void> {
     console.debug(`EventSourceWeb.close()`);
+    this.opened = false;
     if (this.eventSource) {
       this.eventSource.close();
+      this.eventSource.onopen = null;
+      this.eventSource.onmessage = null;
+      this.eventSource.onerror = null;
+      this.eventSource = null;
       this.notifyListeners('readyStateChanged', {
         state: READY_STATE.CLOSED,
       });
@@ -59,9 +74,9 @@ export class EventSourceWeb extends WebPlugin implements EventSourcePlugin {
   }
 }
 
-const EventSource = new EventSourceWeb();
+const EventSourcePluginImpl = new EventSourceWeb();
 
-export { EventSource };
+export { EventSourcePluginImpl as EventSource };
 
 import { registerWebPlugin } from '@capacitor/core';
-registerWebPlugin(EventSource);
+registerWebPlugin(EventSourcePluginImpl);
