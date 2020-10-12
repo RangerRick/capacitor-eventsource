@@ -22,6 +22,7 @@ enum ReadyState {
 
 @NativePlugin
 public class EventSource extends Plugin implements EventHandler {
+
     private static final String TAG = "EventSource";
 
     private com.launchdarkly.eventsource.EventSource sse;
