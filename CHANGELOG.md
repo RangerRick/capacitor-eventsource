@@ -1,6 +1,10 @@
 Changes
 =======
 
+0.1.10
+-----
+* Add some defensive code to the Android version to avoid crashes.
+
 0.1.9
 -----
 * Fix cleanup after closing in the pure-web version.
