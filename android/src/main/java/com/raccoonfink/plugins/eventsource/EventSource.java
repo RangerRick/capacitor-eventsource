@@ -76,13 +76,25 @@ public class EventSource extends Plugin implements EventHandler {
         call.resolve();
     }
 
+    private void safeNotifyListeners(final String eventName, final JSObject ret, final boolean retainUntilConsumed) {
+        if (eventName == null || ret == null) {
+            Log.w(TAG, "Failed to notify listeners, incomplete update");
+            return;
+        }
+        try {
+            this.notifyListeners(eventName, ret, retainUntilConsumed);
+        } catch (final Exception e) {
+            Log.e(TAG, "Failed to notify listeners, update dropped: " + ret.toString(), e);
+        }
+    }
+
     @PluginMethod
     public void open(final PluginCall call) {
         Log.i(TAG, "opening connection");
 
         final JSObject ret = new JSObject();
         ret.put("state", ReadyState.CONNECTING);
-        this.notifyListeners("readyStateChanged", ret, false);
+        this.safeNotifyListeners("readyStateChanged", ret, false);
 
         this.sse.start();
         this.opened = true;
@@ -113,11 +125,11 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("value", null);
-        this.notifyListeners("open", ret, false);
+        this.safeNotifyListeners("open", ret, false);
 
         final JSObject rsRet = new JSObject();
         rsRet.put("state", ReadyState.OPEN);
-        this.notifyListeners("readyStateChanged", rsRet, false);
+        this.safeNotifyListeners("readyStateChanged", rsRet, false);
     }
 
     public void onMessage(final String event, final MessageEvent messageEvent) {
@@ -130,7 +142,7 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("message", messageEvent.getData());
-        this.notifyListeners("message", ret, false);
+        this.safeNotifyListeners("message", ret, false);
     }
 
     public void onComment(final String comment) {
@@ -147,7 +159,7 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("error", throwable.getMessage());
-        this.notifyListeners("error", ret, false);
+        this.safeNotifyListeners("error", ret, false);
     }
 
     public void onClosed() {
@@ -160,6 +172,6 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("state", ReadyState.CLOSED);
-        this.notifyListeners("readyStateChanged", ret, false);
+        this.safeNotifyListeners("readyStateChanged", ret, false);
     }
 }
