@@ -1,11 +1,5 @@
 import { PluginListenerHandle } from '@capacitor/core';
 
-declare module '@capacitor/core' {
-  interface PluginRegistry {
-    EventSource: EventSourcePlugin;
-  }
-}
-
 export interface EventSourceOptions {
   url: string;
   reconnectTime?: number;

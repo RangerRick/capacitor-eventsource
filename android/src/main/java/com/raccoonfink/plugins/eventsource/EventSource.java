@@ -2,11 +2,12 @@ package com.raccoonfink.plugins.eventsource;
 
 import android.util.Log;
 import com.getcapacitor.JSObject;
-import com.getcapacitor.NativePlugin;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
-import com.launchdarkly.eventsource.*;
+import com.getcapacitor.annotation.CapacitorPlugin;
+import com.launchdarkly.eventsource.EventHandler;
+import com.launchdarkly.eventsource.MessageEvent;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -20,7 +21,7 @@ enum ReadyState {
     CLOSED
 }
 
-@NativePlugin
+@CapacitorPlugin
 public class EventSource extends Plugin implements EventHandler {
 
     private static final String TAG = "EventSource";
@@ -76,13 +77,13 @@ public class EventSource extends Plugin implements EventHandler {
         call.resolve();
     }
 
-    private void safeNotifyListeners(final String eventName, final JSObject ret, final boolean retainUntilConsumed) {
+    private void safeNotifyListeners(final String eventName, final JSObject ret) {
         if (eventName == null || ret == null) {
             Log.w(TAG, "Failed to notify listeners, incomplete update");
             return;
         }
         try {
-            this.notifyListeners(eventName, ret, retainUntilConsumed);
+            this.notifyListeners(eventName, ret, false);
         } catch (final Exception e) {
             Log.e(TAG, "Failed to notify listeners, update dropped: " + ret.toString(), e);
         }
@@ -94,7 +95,7 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("state", ReadyState.CONNECTING);
-        this.safeNotifyListeners("readyStateChanged", ret, false);
+        this.safeNotifyListeners("readyStateChanged", ret);
 
         this.sse.start();
         this.opened = true;
@@ -125,11 +126,11 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("value", null);
-        this.safeNotifyListeners("open", ret, false);
+        this.safeNotifyListeners("open", ret);
 
         final JSObject rsRet = new JSObject();
         rsRet.put("state", ReadyState.OPEN);
-        this.safeNotifyListeners("readyStateChanged", rsRet, false);
+        this.safeNotifyListeners("readyStateChanged", rsRet);
     }
 
     public void onMessage(final String event, final MessageEvent messageEvent) {
@@ -142,7 +143,7 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("message", messageEvent.getData());
-        this.safeNotifyListeners("message", ret, false);
+        this.safeNotifyListeners("message", ret);
     }
 
     public void onComment(final String comment) {
@@ -159,7 +160,7 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("error", throwable.getMessage());
-        this.safeNotifyListeners("error", ret, false);
+        this.safeNotifyListeners("error", ret);
     }
 
     public void onClosed() {
@@ -172,6 +173,6 @@ public class EventSource extends Plugin implements EventHandler {
 
         final JSObject ret = new JSObject();
         ret.put("state", ReadyState.CLOSED);
-        this.safeNotifyListeners("readyStateChanged", ret, false);
+        this.safeNotifyListeners("readyStateChanged", ret);
     }
 }
